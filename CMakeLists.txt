@@ -17,10 +17,25 @@ message(WARNING "I'm CMake Beginner") # 설명을 조금 더 강조
 
 # set 은 변수에 값을 설정하는 함수.
 set(${PROJECT_NAME}_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+cmake_path(APPEND ${PROJECT_NAME}_INCLUDE_PATH ${${PROJECT_NAME}_PATH} "include")
+cmake_path(APPEND ${PROJECT_NAME}_SOURCE_PATH ${${PROJECT_NAME}_PATH} "src")
+cmake_path(APPEND ${PROJECT_NAME}_RESOURCE_PATH ${${PROJECT_NAME}_PATH} "resource")
+cmake_path(APPEND ${PROJECT_NAME}_TEST_PATH ${${PROJECT_NAME}_PATH} "test")
+cmake_path(APPEND ${PROJECT_NAME}_THIRDPARTY_PATH ${${PROJECT_NAME}_PATH} "thirdparty")
+message(STATUS "Project \tPath: ${${PROJECT_NAME}_PATH}")
+message(STATUS "Include \tPath: ${${PROJECT_NAME}_INCLUDE_PATH}")
+message(STATUS "Resource \tPath: ${${PROJECT_NAME}_SOURCE_PATH}")
+message(STATUS "Test \tPath: ${${PROJECT_NAME}_TEST_PATH}")
+message(STATUS "Thirdparty \tPath: ${${PROJECT_NAME}_THIRDPARTY_PATH}")
 
 # 변수명의 CMAKE_ prefix는 CMAKE 시스템을 위한 예약어를 암시함.
 # <C++을 사용하는 경우 반드시 사용함>
 set(CMAKE_CXX_STANDARD 14)
+
+# CMake 시스템이 미리 가지고 있는 값들 중
+# CMAKE_SYSTEM_NAME 같이 운영체제 정보나
+# CMAKE_HOST_SYSTEM_PROCESSOR과 같이 아키텍처 정보를 불러올 수 있는 정보도 있음.
+message(STATUS "Operating System - ${CMAKE_SYSTEM_NAME}(${CMAKE_HOST_SYSTEM_PROCESSOR})")
 
 # 자율주행 도메인의 소프트웨어는 cpp 버전을 규제로 강제하곤 함.
 # 일반적으로 그 버전은 C++11 혹은 C++14 임.
