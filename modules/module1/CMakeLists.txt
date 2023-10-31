@@ -3,18 +3,27 @@
 # 따라서 상위 디렉토리의 CMakeLists.txt 에는 별다른 것을 적지 않았지만
 # 이것은 최상위 디렉토리의 CMakeLists.txt 처럼 작성해 주어야 함.
 cmake_minimum_required(VERSION 3.27)
-project(module1 LANGUAGES CXX)
+project(
+    module1
+    LANGUAGES CXX
+)
+
+set(${PROJECT_NAME}_PATH ${CMAKE_CURRENT_SOURCE_DIR})
+cmake_path(APPEND ${PROJECT_NAME}_SOURCE_PATH ${${PROJECT_NAME}_PATH} "src")
+cmake_path(APPEND ${PROJECT_NAME}_INCLUDE_PATH ${${PROJECT_NAME}_PATH} "include")
 
 set(CMAKE_CXX_STANDARD 14)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-set(MODULE1_SOURCE_FILES
-    src/ClassMat.cpp
+set(
+    MODULE1_SOURCE_FILES
+    ${${PROJECT_NAME}_SOURCE_PATH}/ClassMat.cpp
 )
 
 # 이 모듈을 라이브러리로서 사용하고 싶으므로, 라이브러리로 빌드하고자 함.
 # cpp 파일과 헤더 파일이 필요함.
-add_library(module1
+add_library(
+    ${PROJECT_NAME} # 기본값은 STATIC .a 파일, SHARED: .dylib 파일(Linux, Mac), MODULE
     ${MODULE1_SOURCE_FILES}
 )
 
@@ -40,13 +49,17 @@ endif()
 # CMake에서 타겟은 실행가능한 파일 또는 CMake에서 빌드되는 라이브러리임.
 # 타겟(여기에서는 module1)이 include해서 사용할 헤더파일의 경로들을 명시함.
 # public으로 하는 경우 프로젝트의 상위에서 타깃을 include했을 때 사용 가능.
+# 예를 들어, 라이브러리 A를 B가 사용하고, B가 C를 사용했을 때, C에서 A를 사용할 수 있음.
 # private으로 하는 경우 외부에 노출되지 않음.
-# 변수 OpenCV_INCLUDE_DIRS는 find_package(OpenCV...) 를 통해 할당됨.
+# 예를 들어, 라이브러리를 A를 B가 사용하고, B가 C를 사용했을 때, C가 A를 사용할 수 없음.
+# 따라서 include는 일반적으로 PUBLIC 으로 사용하는 것을 권장함.
+# 한편, 변수 OpenCV_INCLUDE_DIRS는 find_package(OpenCV...) 를 통해 할당됨.
 # 여기서 OpenCV_INCLUDE_DIRS를 PRIVATE로 지정한다면
 # 따라서 examples 디렉토리의 엔트리포인트 파일을 컴파일할 때 include 디렉토리에 있는 헤더파일을 읽다가
 # 최상위 CMakeLists.txt에서는 OpenCV 헤더파일 위치를 읽을 수 없어 OpenCV_INCLUDE_DIRS를 찾을 수 없게 되므로
 # OpenCV 헤더파일을 불러오는 헤더파일을 읽을 수 없다는 문제가 발생함.
-target_include_directories(module1 PUBLIC
+target_include_directories(
+    ${PROJECT_NAME} PUBLIC
     include
     ${OpenCV_INCLUDE_DIRS}
 )
@@ -55,6 +68,16 @@ target_include_directories(module1 PUBLIC
 # 컴파일이야 헤더파일만 있으면 되지만, 링킹을 위해서는 의존하는 라이브러리의 바이트코드를 가져올 수 있어야 함.
 # 아래는 의존하는 라이브러리 OpenCV의 바이트코드를 가져오는 과정임.
 # 변수 OpenCV_LIBS는 find_package(OpenCV...) 를 통해 할당됨.
-target_link_libraries(module1 PRIVATE
+target_link_libraries(
+    ${PROJECT_NAME} PRIVATE
     ${OpenCV_LIBS}
+)
+
+# 메모리 누수 문제 등을 미연에 발견하는 것을 돕는 컴파일러 옵션들을 지정할 수 있음.
+# Makefile 등 빌드 파일에 자동으로 작성될 것이라고 예상할 수 있음.
+# e.g. https://github.com/ProtossDragoon/epita-w6-prog-http-server/blob/master/ttt_server/Makefile
+# 컴파일러, 운영체제 등에 의존적이므로 확인 필요.
+target_compile_options(
+    ${PROJECT_NAME} PRIVATE
+    -Wall -Wextra -Wpedantic -Werror
 )
